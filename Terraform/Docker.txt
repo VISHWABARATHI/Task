@@ -1,0 +1,12 @@
+az acr show --name <acr_name> --query "loginServer" --output tsv
+
+az acr login --name containerregistrytask
+
+docker pull nginx:latest
+docker pull httpd:latest
+
+docker tag nginx:latest containerregistrytask.azurecr.io/nginx:latest
+docker tag httpd:latest containerregistrytask.azurecr.io/apache:latest
+
+docker push containerregistrytask.azurecr.io/nginx:latest
+docker push containerregistrytask.azurecr.io/apache:latest
