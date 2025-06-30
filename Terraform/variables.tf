@@ -63,3 +63,9 @@ variable "webserver_type" {
     error_message = "webserver_type must be 'nginx' or 'apache'."
   }
 }
+
+variable "webserver_image_tag" {
+  description = "Tag of the webserver image in ACR"
+  type        = string
+  default     = "latest"
+}

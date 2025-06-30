@@ -10,3 +10,49 @@ docker tag httpd:latest containerregistrytask.azurecr.io/apache:latest
 
 docker push containerregistrytask.azurecr.io/nginx:latest
 docker push containerregistrytask.azurecr.io/apache:latest
+
+
+Remove-Item -Recurse -Force .terraform, .terraform.lock.hcl, terraform.tfstate* -ErrorAction SilentlyContinue
+
+az acr repository show-tags --name containerregistrytask --repository nginx --output table
+az acr repository show-tags --name containerregistrytask --repository apache --output table
+
+
+kubernetes_deployment.webserver: Still creating... [19m51s elapsed]
+kubernetes_deployment.webserver: Still creating... [20m1s elapsed]
+╷
+│ Error: Deployment exceeded its progress deadline
+│
+│   with kubernetes_deployment.webserver,
+│   on main.tf line 94, in resource "kubernetes_deployment" "webserver":
+│   94: resource "kubernetes_deployment" "webserver" {
+│
+╵
+PS C:\Users\Kapil\Desktop\Task\Terraform> 
+
+
+
+
+az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
+
+
+C:\Users\Kapil>kubectl get nodes
+NAME                             STATUS   ROLES    AGE   VERSION
+aks-system-30408150-vmss000000   Ready    <none>   29m   v1.32.5
+aks-system-30408150-vmss000001   Ready    <none>   29m   v1.32.5
+
+C:\Users\Kapil>kubectl get deployments
+No resources found in default namespace.
+
+C:\Users\Kapil>kubectl get pods
+No resources found in default namespace.
+
+C:\Users\Kapil>kubectl get pods -n deploy
+NAME                                READY   STATUS             RESTARTS   AGE
+nginx-deployment-548b9cdd6b-h9tc5   0/1     ImagePullBackOff   0          27m
+
+C:\Users\Kapil>
+
+az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
+
+az acr login --name containerregistrytask
