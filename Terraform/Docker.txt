@@ -18,41 +18,83 @@ az acr repository show-tags --name containerregistrytask --repository nginx --ou
 az acr repository show-tags --name containerregistrytask --repository apache --output table
 
 
-kubernetes_deployment.webserver: Still creating... [19m51s elapsed]
-kubernetes_deployment.webserver: Still creating... [20m1s elapsed]
-╷
-│ Error: Deployment exceeded its progress deadline
-│
-│   with kubernetes_deployment.webserver,
-│   on main.tf line 94, in resource "kubernetes_deployment" "webserver":
-│   94: resource "kubernetes_deployment" "webserver" {
-│
-╵
-PS C:\Users\Kapil\Desktop\Task\Terraform> 
 
+az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
 
 
 
 az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
 
 
-C:\Users\Kapil>kubectl get nodes
-NAME                             STATUS   ROLES    AGE   VERSION
-aks-system-30408150-vmss000000   Ready    <none>   29m   v1.32.5
-aks-system-30408150-vmss000001   Ready    <none>   29m   v1.32.5
 
-C:\Users\Kapil>kubectl get deployments
-No resources found in default namespace.
 
-C:\Users\Kapil>kubectl get pods
-No resources found in default namespace.
 
-C:\Users\Kapil>kubectl get pods -n deploy
-NAME                                READY   STATUS             RESTARTS   AGE
-nginx-deployment-548b9cdd6b-h9tc5   0/1     ImagePullBackOff   0          27m
+az aks update -g <resource-group> -n <aks-cluster> --attach-acr containerregistrytask
 
-C:\Users\Kapil>
 
-az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
+
+
+Public image
+kubectl set image deployment/nginx-deployment -n web-nginx nginx=nginx:latest
+
 
 az acr login --name containerregistrytask
+az acr repository list --name containerregistrytask --output table
+az acr repository show-tags --name containerregistrytask --repository nginx --output table
+az acr repository show-tags --name containerregistrytask --repository apache --output table
+
+Assign AcrPull Role to AKS kubelet identity
+$acrId = az acr show --name containerregistrytask --query id --output tsv
+$userId = az ad signed-in-user show --query id --output tsv
+az role assignment create --assignee $userId --role "AcrPull" --scope $acrId
+
+az login
+az logout
+az acr repository show-manifests --name containerregistrytask --repository nginx --output table
+az rest --method get --url "https://containerregistrytask.azurecr.io/acr/v1/nginx/tags" --resource https://containerregistry.azure.net
+
+
+$acrId = az acr show --name containerregistrytask --query id --output tsv
+$userId = az ad signed-in-user show --query id --output tsv
+az role assignment create --assignee $userId --role "AcrReader" --scope $acrId
+az role assignment create --assignee $userId --role "Reader" --scope $acrId
+
+
+
+
+List of Commands
+
+az acr list -o table
+az acr login -n containerregistrytask
+az acr repository list --name containerregistrytask --output table
+cat C:\Users\Kapil\.docker\config.json
+docker tag nginx containerregistrytask.azurecr.io/mynginx
+docker push containerregistrytask.azurecr.io/mynginx
+az aks get-credentials --resource-group NewResourceGroup --name my-aks-cluster --overwrite-existing
+az acr repository show-tags --name containerregistrytask --repository nginx --output table --debug
+az acr repository show-tags --name containerregistrytask --repository nginx --output json
+docker push containerregistrytask.azurecr.io/nginx:latest
+az acr repository show-tags --name containerregistrytask --repository <actual-repo-name> --output table
+docker tag nginx:latest containerregistrytask.azurecr.io/nginx:latest
+az acr repository show-tags --name containerregistrytask --repository nginx --output json --debug
+az acr repository show-manifests --name containerregistrytask --repository nginx --output table
+az acr repository delete --name containerregistrytask --image nginx:latest --yes
+az acr repository delete --name containerregistrytask --repository nginx --digest
+docker image prune
+docker image prune -a
+az rest --method get --url "https://containerregistrytask.azurecr.io/acr/v1/apache/tags" --headers "Content-Type=application/json"
+az rest --method get --url "https://containerregistrytask.azurecr.io/acr/v1/nginx/tags" --headers "Content-Type=application/json" --resource https://containerregistry.azure.net
+az ad signed-in-user show --query id --output tsv
+az role assignment create --assignee 4efe3446-3050-4345-809b-7c0c90519a8e --role "AcrReader" --scope $(az acr show --name containerregistrytask --query id --output tsv)
+az account show --query user.name
+$acrId = az acr show --name containerregistrytask --query id --output tsv
+$userId = az ad signed-in-user show --query id --output tsv
+az role assignment create --assignee $userId --role "AcrReader" --scope $acrId
+az role assignment create --assignee $userId --role "Reader" --scope $acrId
+az role definition list --query "[?contains(roleName, 'Acr')].roleName" --output table
+az role assignment create --assignee $userId --role "AcrPull" --scope $acrId
+az login --use-device-code
+az acr credential show --name containerregistrytask
+(Get-History).CommandLine
+(Get-History).CommandLine | Select-Object -Unique | Out-File history.txt
+ 
